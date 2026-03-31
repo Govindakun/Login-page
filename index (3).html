@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Login</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet"/>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+
+body{
+  min-height:100vh;
+  background:#0d0d0d;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-family:'Rajdhani',sans-serif;
+  /* NO overflow:hidden here — allow scroll on mobile */
+  padding:20px 0;
+}
+
+/* ══ RINGS ══ */
+.ring-wrap{
+  position:relative;
+  width:min(380px, 95vw);
+  height:min(380px, 95vw);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex-shrink:0;
+}
+
+.ring-wrap i{
+  position:absolute;
+  inset:0;
+  border-radius:50%;
+  border:4px solid transparent;
+}
+
+.ring-wrap i:nth-child(1){
+  border-top-color:#ff2020;
+  border-bottom-color:#ff2020;
+  animation:rot1 3s linear infinite;
+  filter:drop-shadow(0 0 8px #ff2020) drop-shadow(0 0 20px #ff2020);
+}
+.ring-wrap i:nth-child(2){
+  inset:16px;
+  border-left-color:#ffcc00;
+  border-right-color:#ffcc00;
+  animation:rot2 2.4s linear infinite;
+  filter:drop-shadow(0 0 8px #ffcc00) drop-shadow(0 0 20px #ffcc00);
+}
+.ring-wrap i:nth-child(3){
+  inset:32px;
+  border:3px solid transparent;
+  border-top-color:#39ff14;
+  border-right-color:#39ff14;
+  animation:rot1 2s linear infinite;
+  filter:drop-shadow(0 0 6px #39ff14) drop-shadow(0 0 16px #39ff14);
+}
+
+@keyframes rot1{to{transform:rotate(360deg)}}
+@keyframes rot2{to{transform:rotate(-360deg)}}
+
+/* ══ CARD — KEY FIX: max-height + overflow-y scroll ══ */
+.card{
+  position:absolute;
+  z-index:10;
+  width:min(262px, 75vw);
+  max-height:min(320px, 75vw);   /* fits inside ring */
+  overflow-y:auto;
+  overflow-x:hidden;
+  /* hide scrollbar visually */
+  scrollbar-width:none;
+  -ms-overflow-style:none;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:10px;
+  padding:2px 4px 6px;
+}
+.card::-webkit-scrollbar{display:none}
+
+/* ══ VIEWS ══ */
+.view{display:none;flex-direction:column;width:100%;gap:10px;align-items:center}
+.view.active{display:flex;animation:fi .3s ease}
+@keyframes fi{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+
+/* ══ TITLE ══ */
+.card-title{
+  color:#fff;font-size:1.2rem;font-weight:700;
+  letter-spacing:2px;text-align:center;
+  margin-bottom:1px;
+}
+
+/* ══ INPUTS ══ */
+.inp-wrap{position:relative;width:100%}
+
+.inp-wrap input{
+  width:100%;
+  padding:8px 36px 8px 12px;
+  background:rgba(255,255,255,.06);
+  border:1.5px solid rgba(255,255,255,.13);
+  border-radius:25px;
+  color:#fff;
+  font-family:'Rajdhani',sans-serif;
+  font-size:.85rem;
+  outline:none;
+  transition:border-color .2s;
+}
+.inp-wrap input::placeholder{color:rgba(255,255,255,.35)}
+.inp-wrap input:focus{border-color:rgba(255,200,0,.6)}
+
+.inp-icon{
+  position:absolute;right:11px;top:50%;
+  transform:translateY(-50%);
+  cursor:pointer;font-size:.78rem;
+  opacity:.4;user-select:none;transition:opacity .2s;
+}
+.inp-icon:hover{opacity:.9}
+
+/* email badge */
+.ebadge{
+  position:absolute;right:11px;top:50%;
+  transform:translateY(-50%);
+  font-size:.54rem;font-weight:700;
+  padding:2px 5px;border-radius:20px;
+  display:none;letter-spacing:.4px;
+}
+.ebadge.ok{display:block;background:rgba(57,255,20,.15);color:#39ff14;border:1px solid rgba(57,255,20,.3)}
+.ebadge.bad{display:block;background:rgba(255,40,40,.12);color:#ff4757;border:1px solid rgba(255,40,40,.3)}
+
+/* ══ STRENGTH ══ */
+.sbar{height:3px;border-radius:4px;background:rgba(255,255,255,.08);width:100%;overflow:hidden}
+.sfill{height:100%;border-radius:4px;width:0;transition:width .4s,background .4s}
+.slabel{font-size:.6rem;color:rgba(255,255,255,.35);text-align:right;width:100%}
+.hints{display:flex;flex-wrap:wrap;gap:4px;width:100%}
+.hint{font-size:.58rem;padding:2px 6px;border-radius:20px;
+  background:rgba(255,255,255,.05);color:rgba(255,255,255,.3);
+  border:1px solid rgba(255,255,255,.07);transition:all .2s}
+.hint.pass{background:rgba(57,255,20,.1);color:#39ff14;border-color:rgba(57,255,20,.25)}
+
+/* ══ BUTTONS ══ */
+.btn{
+  width:100%;padding:9px;border-radius:25px;border:none;
+  font-family:'Rajdhani',sans-serif;font-size:.88rem;font-weight:700;
+  letter-spacing:.8px;cursor:pointer;transition:all .2s;
+  flex-shrink:0;
+}
+.btn-main{
+  background:linear-gradient(90deg,#ff5f5f,#ffcc00);
+  color:#111;
+  box-shadow:0 0 14px rgba(255,180,0,.3);
+}
+.btn-main:hover{transform:translateY(-1px);box-shadow:0 0 22px rgba(255,180,0,.5)}
+.btn-main:active{transform:none}
+
+.btn-ghost{
+  background:transparent;
+  border:1px solid rgba(255,255,255,.15);
+  color:rgba(255,255,255,.6);font-size:.78rem;
+}
+.btn-ghost:hover{background:rgba(255,255,255,.06)}
+
+.btn-google{
+  display:flex;align-items:center;justify-content:center;gap:7px;
+  background:rgba(255,255,255,.07);
+  border:1px solid rgba(255,255,255,.14);
+  color:rgba(255,255,255,.75);
+  font-size:.78rem;font-weight:600;letter-spacing:.2px;
+}
+.btn-google:hover{background:rgba(255,255,255,.12)}
+.btn-google img{width:14px;height:14px}
+
+/* divider */
+.div-line{
+  display:flex;align-items:center;gap:7px;
+  color:rgba(255,255,255,.22);font-size:.65rem;width:100%;
+}
+.div-line::before,.div-line::after{content:'';flex:1;height:1px;background:rgba(255,255,255,.09)}
+
+/* links */
+.links-row{display:flex;justify-content:space-between;width:100%;font-size:.7rem;color:rgba(255,255,255,.3)}
+.links-row a,.sw a{color:#ffcc00;cursor:pointer;text-decoration:none}
+.links-row a:hover,.sw a:hover{text-decoration:underline}
+.sw{text-align:center;font-size:.7rem;color:rgba(255,255,255,.3)}
+
+/* status */
+.st{font-size:.69rem;text-align:center;min-height:12px;color:#ff4757;width:100%}
+.st.ok{color:#39ff14}
+
+/* ══ CAPTCHA ══ */
+.cap-box{
+  display:flex;align-items:center;gap:9px;width:100%;
+  background:rgba(255,255,255,.04);
+  border:1px solid rgba(255,255,255,.1);
+  border-radius:9px;padding:8px 12px;
+  cursor:pointer;user-select:none;flex-shrink:0;
+}
+.cap-box:hover{background:rgba(255,255,255,.07)}
+.cap-chk{
+  width:18px;height:18px;border-radius:4px;
+  border:2px solid rgba(255,255,255,.28);
+  display:flex;align-items:center;justify-content:center;
+  transition:all .25s;flex-shrink:0;
+}
+.cap-chk.done{background:#39ff14;border-color:#39ff14}
+.cap-chk.done::after{content:'✓';color:#000;font-size:.7rem;font-weight:900}
+.cap-lbl{font-size:.72rem;color:rgba(255,255,255,.45);flex:1}
+.cap-logo{font-size:.55rem;color:rgba(255,255,255,.18);text-align:right;line-height:1.4}
+
+/* ══ OTP ══ */
+.otp-row{display:flex;gap:7px;justify-content:center}
+.otp-row input{
+  width:35px;height:38px;border-radius:7px;
+  background:rgba(255,255,255,.06);
+  border:1.5px solid rgba(255,255,255,.12);
+  color:#fff;font-size:1rem;text-align:center;outline:none;
+  transition:border-color .2s;
+}
+.otp-row input:focus{border-color:#ffcc00}
+.timer{text-align:center;font-size:.68rem;color:rgba(255,255,255,.32);width:100%}
+.timer b{color:#ffcc00}
+
+/* ══ SUCCESS ══ */
+.sico{font-size:2.5rem;text-align:center;animation:pop .5s cubic-bezier(.36,1.6,.4,1)}
+@keyframes pop{from{transform:scale(0)}to{transform:scale(1)}}
+</style>
+</head>
+<body>
+
+<div class="ring-wrap">
+  <i></i><i></i><i></i>
+
+  <div class="card" id="mainCard">
+
+    <!-- LOGIN -->
+    <div class="view active" id="v-login">
+      <div class="card-title">Login</div>
+      <button class="btn btn-google" onclick="gSign()">
+        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="G">
+        Continue with Google
+      </button>
+      <div class="div-line">or</div>
+      <div class="inp-wrap">
+        <input type="email" id="l-email" placeholder="Email" oninput="chkE(this,'le')"/>
+        <span class="ebadge" id="le"></span>
+      </div>
+      <div class="inp-wrap">
+        <input type="password" id="l-pass" placeholder="Password"/>
+        <span class="inp-icon" onclick="eye('l-pass',this)">👁</span>
+      </div>
+      <div class="cap-box" onclick="capClick('lc','lchk')">
+        <div class="cap-chk" id="lchk"></div>
+        <div class="cap-lbl">I'm not a robot</div>
+        <div class="cap-logo">reCAPTCHA<br>Privacy·Terms</div>
+      </div>
+      <div class="st" id="lst"></div>
+      <button class="btn btn-main" onclick="doLogin()">Sign In</button>
+      <div class="links-row">
+        <a onclick="go('forgot')">Forgot Password</a>
+        <a onclick="go('signup')">Sign Up</a>
+      </div>
+    </div>
+
+    <!-- SIGNUP -->
+    <div class="view" id="v-signup">
+      <div class="card-title">Sign Up</div>
+      <button class="btn btn-google" onclick="gSign()">
+        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="G">
+        Sign up with Google
+      </button>
+      <div class="div-line">or</div>
+      <div class="inp-wrap">
+        <input type="text" id="sname" placeholder="Full Name"/>
+      </div>
+      <div class="inp-wrap">
+        <input type="email" id="semail" placeholder="Email Address" oninput="chkE(this,'se')"/>
+        <span class="ebadge" id="se"></span>
+      </div>
+      <div class="inp-wrap">
+        <input type="password" id="spass" placeholder="Create Password" oninput="strCheck(this)"/>
+        <span class="inp-icon" onclick="eye('spass',this)">👁</span>
+      </div>
+      <div class="sbar"><div class="sfill" id="sfill"></div></div>
+      <div class="slabel" id="slbl"></div>
+      <div class="hints">
+        <span class="hint" id="hh1">8+ chars</span>
+        <span class="hint" id="hh2">A–Z</span>
+        <span class="hint" id="hh3">a–z</span>
+        <span class="hint" id="hh4">0–9</span>
+        <span class="hint" id="hh5">Symbol</span>
+      </div>
+      <div class="inp-wrap">
+        <input type="password" id="spass2" placeholder="Confirm Password"/>
+        <span class="inp-icon" onclick="eye('spass2',this)">👁</span>
+      </div>
+      <div class="cap-box" onclick="capClick('sc','schk')">
+        <div class="cap-chk" id="schk"></div>
+        <div class="cap-lbl">I'm not a robot</div>
+        <div class="cap-logo">reCAPTCHA<br>Privacy·Terms</div>
+      </div>
+      <div class="st" id="sst"></div>
+      <button class="btn btn-main" onclick="doSignup()">Create Account</button>
+      <div class="sw">Have account? <a onclick="go('login')">Sign In</a></div>
+    </div>
+
+    <!-- FORGOT -->
+    <div class="view" id="v-forgot">
+      <div class="card-title">Reset</div>
+      <div style="font-size:.72rem;color:rgba(255,255,255,.38);text-align:center;width:100%">Enter email to get reset code</div>
+      <div class="inp-wrap">
+        <input type="email" id="femail" placeholder="Your Email" oninput="chkE(this,'fe')"/>
+        <span class="ebadge" id="fe"></span>
+      </div>
+      <div class="cap-box" onclick="capClick('fc','fchk')">
+        <div class="cap-chk" id="fchk"></div>
+        <div class="cap-lbl">I'm not a robot</div>
+        <div class="cap-logo">reCAPTCHA<br>Privacy·Terms</div>
+      </div>
+      <div class="st" id="fst"></div>
+      <button class="btn btn-main" onclick="doForgot()">Send Reset Code</button>
+      <div class="sw"><a onclick="go('login')">← Back to Login</a></div>
+    </div>
+
+    <!-- OTP -->
+    <div class="view" id="v-otp">
+      <div class="card-title">Verify</div>
+      <div id="osub" style="font-size:.7rem;color:rgba(255,255,255,.38);text-align:center;width:100%;word-break:break-all"></div>
+      <div class="otp-row">
+        <input type="text" maxlength="1" class="od" oninput="oNext(this)" onkeydown="oBk(event,this)"/>
+        <input type="text" maxlength="1" class="od" oninput="oNext(this)" onkeydown="oBk(event,this)"/>
+        <input type="text" maxlength="1" class="od" oninput="oNext(this)" onkeydown="oBk(event,this)"/>
+        <input type="text" maxlength="1" class="od" oninput="oNext(this)" onkeydown="oBk(event,this)"/>
+        <input type="text" maxlength="1" class="od" oninput="oNext(this)" onkeydown="oBk(event,this)"/>
+        <input type="text" maxlength="1" class="od" oninput="oNext(this)" onkeydown="oBk(event,this)"/>
+      </div>
+      <div class="timer">Expires in <b id="otmr">05:00</b></div>
+      <div class="st" id="ost"></div>
+      <button class="btn btn-main" onclick="verOTP()">Verify</button>
+      <button class="btn btn-ghost" onclick="resend()">Resend Code</button>
+      <div class="sw"><a onclick="go('login')">← Back</a></div>
+    </div>
+
+    <!-- SUCCESS -->
+    <div class="view" id="v-success">
+      <div class="sico">✅</div>
+      <div class="card-title" style="font-size:1rem">Verified!</div>
+      <div style="font-size:.72rem;color:rgba(255,255,255,.38);text-align:center">Account activated successfully.</div>
+      <button class="btn btn-main" onclick="go('login')">Go to Login →</button>
+    </div>
+
+  </div><!-- /card -->
+</div><!-- /ring-wrap -->
+
+<script>
+// ── STATE ──
+const S = { otp:'', exp:0, email:'', tid:null, caps:{} };
+
+// ── NAVIGATE ──
+function go(v){
+  document.querySelectorAll('.view').forEach(el=>el.classList.remove('active'));
+  document.getElementById('v-'+v).classList.add('active');
+  // scroll card back to top
+  document.getElementById('mainCard').scrollTop = 0;
+  if(v!=='otp' && S.tid){ clearInterval(S.tid); S.tid=null; }
+}
+
+// ── CAPTCHA ──
+function capClick(capKey, chkId){
+  const chk = document.getElementById(chkId);
+  if(chk.classList.contains('done')){
+    chk.classList.remove('done');
+    S.caps[capKey] = false;
+  } else {
+    setTimeout(()=>{ chk.classList.add('done'); S.caps[capKey]=true; }, 350+Math.random()*300);
+  }
+}
+function capOK(k){ return S.caps[k]===true; }
+
+// ── TEMP MAIL LIST ──
+const TEMP = new Set([
+  'mailinator.com','guerrillamail.com','10minutemail.com','tempmail.com','throwaway.email',
+  'yopmail.com','trashmail.com','sharklasers.com','spam4.me','dispostable.com',
+  'mailnull.com','maildrop.cc','spamgourmet.com','mintemail.com','fakeinbox.com',
+  'getnada.com','tempr.email','moakt.com','discard.email','mytemp.email',
+  'temp-mail.org','mailtemp.net','disposablemail.com','getairmail.com','throwam.com',
+  'discardmail.com','mailsac.com','tmpmail.net','tmpmail.org','owlpic.com'
+]);
+
+function chkE(inp, bid){
+  const b = document.getElementById(bid);
+  const v = inp.value.trim();
+  if(!v){ b.className='ebadge'; return; }
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v)){ b.textContent='INVALID'; b.className='ebadge bad'; return; }
+  if(TEMP.has(v.split('@')[1].toLowerCase())){ b.textContent='TEMP'; b.className='ebadge bad'; return; }
+  b.textContent='✓ OK'; b.className='ebadge ok';
+}
+
+function emailValid(v){
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v)) return 'Invalid email format.';
+  if(TEMP.has(v.split('@')[1].toLowerCase())) return 'Disposable emails not allowed.';
+  return '';
+}
+
+// ── PASSWORD STRENGTH ──
+function strCheck(inp){
+  const v = inp.value;
+  const t = [v.length>=8, /[A-Z]/.test(v), /[a-z]/.test(v), /[0-9]/.test(v), /[^A-Za-z0-9]/.test(v)];
+  ['hh1','hh2','hh3','hh4','hh5'].forEach((id,i)=>
+    document.getElementById(id).className = 'hint'+(t[i]?' pass':''));
+  const score = t.filter(Boolean).length;
+  const W = [0,18,38,62,84,100][score];
+  const C = ['#222','#ff4757','#ff6b35','#ffcc00','#7bed9f','#39ff14'];
+  const L = ['','Weak','Fair','Good','Strong','Very Strong'];
+  const f = document.getElementById('sfill');
+  f.style.width = W+'%'; f.style.background = C[score];
+  const lb = document.getElementById('slbl');
+  lb.textContent = L[score]; lb.style.color = C[score];
+}
+function passScore(v){
+  return [v.length>=8,/[A-Z]/.test(v),/[a-z]/.test(v),/[0-9]/.test(v),/[^A-Za-z0-9]/.test(v)].filter(Boolean).length;
+}
+
+// ── EYE TOGGLE ──
+function eye(id, el){
+  const i = document.getElementById(id);
+  i.type = i.type==='password' ? 'text' : 'password';
+  el.textContent = i.type==='text' ? '🙈' : '👁';
+}
+
+// ── OTP ──
+function mkOTP(){ return String(Math.floor(100000+Math.random()*900000)); }
+
+function startTimer(){
+  let s = 300;
+  if(S.tid) clearInterval(S.tid);
+  S.tid = setInterval(()=>{
+    s--;
+    const el = document.getElementById('otmr');
+    if(!el){ clearInterval(S.tid); return; }
+    if(s<=0){ clearInterval(S.tid); el.textContent='Expired'; return; }
+    el.textContent = String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');
+  },1000);
+}
+
+function fireOTP(email){
+  S.otp = mkOTP();
+  S.exp = Date.now() + 300000;
+  S.email = email;
+  // DEMO — open browser console (F12) to see OTP
+  console.log('%c 🔑 OTP for '+email+' → '+S.otp+' ','background:#ffcc00;color:#000;padding:5px 12px;border-radius:5px;font-weight:bold;font-size:15px');
+  /* REAL SMTP — uncomment:
+  fetch('/api/send-otp',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({email,otp:S.otp})});
+  */
+}
+
+function goOTP(sub){
+  document.getElementById('osub').textContent = sub;
+  document.querySelectorAll('.od').forEach(i=>i.value='');
+  document.getElementById('ost').textContent = '';
+  go('otp');
+  startTimer();
+  setTimeout(()=>document.querySelectorAll('.od')[0].focus(), 100);
+}
+
+function oNext(el){
+  el.value = el.value.replace(/\D/g,'');
+  if(el.value && el.nextElementSibling) el.nextElementSibling.focus();
+}
+function oBk(e,el){
+  if(e.key==='Backspace'&&!el.value&&el.previousElementSibling) el.previousElementSibling.focus();
+  if(e.key==='Enter') verOTP();
+}
+
+function verOTP(){
+  const d = [...document.querySelectorAll('.od')].map(i=>i.value).join('');
+  const st = document.getElementById('ost');
+  if(d.length<6){ st.textContent='Enter all 6 digits.'; st.className='st'; return; }
+  if(Date.now()>S.exp){ st.textContent='OTP expired. Resend.'; st.className='st'; return; }
+  if(d===S.otp){
+    st.textContent='✓ Verified!'; st.className='st ok';
+    clearInterval(S.tid);
+    setTimeout(()=>go('success'), 700);
+  } else {
+    st.textContent='Wrong code. Try again.'; st.className='st';
+    document.querySelectorAll('.od').forEach(i=>i.value='');
+    document.querySelectorAll('.od')[0].focus();
+  }
+}
+
+function resend(){
+  fireOTP(S.email); startTimer();
+  document.querySelectorAll('.od').forEach(i=>i.value='');
+  document.querySelectorAll('.od')[0].focus();
+  const st=document.getElementById('ost');
+  st.textContent='Code resent!'; st.className='st ok';
+  setTimeout(()=>st.textContent='', 2500);
+}
+
+// ── SHOW ERROR helper ──
+function err(id, msg){ const el=document.getElementById(id); el.textContent=msg; el.className='st'; }
+function ok_(id, msg){ const el=document.getElementById(id); el.textContent=msg; el.className='st ok'; }
+
+// ── LOGIN ──
+function doLogin(){
+  const email = document.getElementById('l-email').value.trim();
+  const pass  = document.getElementById('l-pass').value;
+  document.getElementById('lst').textContent='';
+
+  if(!email){ err('lst','Enter your email.'); return; }
+  const ev = emailValid(email);
+  if(ev){ err('lst',ev); return; }
+  if(!pass){ err('lst','Enter your password.'); return; }
+  if(!capOK('lc')){ err('lst','Tick the reCAPTCHA checkbox.'); return; }
+
+  ok_('lst','Sending OTP…');
+  fireOTP(email);
+  setTimeout(()=>goOTP('Verification code sent to '+email), 300);
+}
+
+// ── SIGNUP ──
+function doSignup(){
+  const name  = document.getElementById('sname').value.trim();
+  const email = document.getElementById('semail').value.trim();
+  const pass  = document.getElementById('spass').value;
+  const pass2 = document.getElementById('spass2').value;
+  document.getElementById('sst').textContent='';
+
+  if(!name){  err('sst','Enter your full name.'); return; }
+  const ev = emailValid(email);
+  if(ev){ err('sst',ev); return; }
+  if(!pass){ err('sst','Enter a password.'); return; }
+  if(passScore(pass)<3){ err('sst','Password too weak — make it stronger.'); return; }
+  if(pass!==pass2){ err('sst','Passwords do not match.'); return; }
+  if(!capOK('sc')){ err('sst','Tick the reCAPTCHA checkbox.'); return; }
+
+  ok_('sst','Account created! Sending OTP…');
+  fireOTP(email);
+  setTimeout(()=>goOTP('Activate account — code sent to '+email), 300);
+}
+
+// ── FORGOT ──
+function doForgot(){
+  const email = document.getElementById('femail').value.trim();
+  document.getElementById('fst').textContent='';
+  const ev = emailValid(email);
+  if(ev){ err('fst',ev); return; }
+  if(!capOK('fc')){ err('fst','Tick the reCAPTCHA checkbox.'); return; }
+
+  ok_('fst','Reset code sent!');
+  fireOTP(email);
+  setTimeout(()=>goOTP('Password reset code sent to '+email), 300);
+}
+
+// ── GOOGLE ──
+function gSign(){
+  alert('Wire to Firebase:\nfirebase.auth().signInWithPopup(new firebase.auth.GoogleAuthProvider())');
+}
+</script>
+</body>
+</html>
